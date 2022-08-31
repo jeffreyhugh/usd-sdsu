@@ -67,11 +67,10 @@ export default function Page({ city }: { city: string }) {
         <meta property="og:url" content="https://usd-sdsu.com" />
         <meta property="og:type" content="website" />
       </Head>
-      {/* TODO fix website ID */}
       <Script
         async
         defer
-        data-website-id="aac21d7d-0d80-4679-9efb-4b70ea621564"
+        data-website-id="4be00181-a6e4-4827-b1cb-fb1400a79ba3"
         src="https://umami.queue.bot/umami.js"
       />
       <main className="relative w-full">
