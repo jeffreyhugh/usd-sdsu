@@ -154,6 +154,11 @@ const buttonClick = async (
   });
   mutate("/api/button");
   if (tag) mutate("/api/leaderboard");
+  if (window.umami) {
+    window.umami(
+      `click-${side}${tag !== "" ? `-${correctTag(tag.trim())}` : ""}`
+    );
+  }
 };
 
 const Stats = ({
@@ -235,11 +240,11 @@ const Stats = ({
 };
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  const {'x-vercel-ip-city': city } = ctx.req.headers;
+  const { "x-vercel-ip-city": city } = ctx.req.headers;
 
   return {
     props: {
-      city: city || '',
+      city: city || "",
     },
   };
 };
