@@ -11,6 +11,10 @@ import correctTag from "../lib/correctTag";
 import { Row_Presses, View_Leaderboard, View_Totals } from "../lib/db";
 import { GetServerSidePropsContext } from "next";
 
+declare global {
+  interface Window { umami: (tag: any) => void; }
+}
+
 export default function Page({ city }: { city: string }) {
   const side = city && city.toLowerCase() === "vermillion" ? "usd" : "sdsu";
 
