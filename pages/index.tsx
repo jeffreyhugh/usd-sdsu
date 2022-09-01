@@ -172,8 +172,8 @@ const Stats = ({
   data: View_Totals[];
   leaderboard: View_Leaderboard[];
 }) => {
-  const usdTotal = leaderboard.filter((r) => r.side === "usd")[0]?.count || 0;
-  const sdsuTotal = leaderboard.filter((r) => r.side === "sdsu")[0]?.count || 0;
+  const usdTotal = data.filter((r) => r.side === "usd")[0]?.count || 0;
+  const sdsuTotal = data.filter((r) => r.side === "sdsu")[0]?.count || 0;
 
   return (
     <div className="absolute mt-6 flex w-full justify-center">
