@@ -9,6 +9,7 @@ import Script from "next/script";
 import { ScopedMutator } from "swr/dist/types";
 import correctTag from "../lib/correctTag";
 import { Row_Presses, View_Leaderboard, View_Totals } from "../lib/db";
+import { GetServerSidePropsContext } from "next";
 
 export default function Page({ city }: { city: string }) {
   const side = city && city.toLowerCase() === "vermillion" ? "usd" : "sdsu";
@@ -231,4 +232,14 @@ const Stats = ({
       </div>
     </div>
   );
+};
+
+export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+  const {'x-vercel-ip-city': city } = ctx.req.headers;
+
+  return {
+    props: {
+      city: city || '',
+    },
+  };
 };
