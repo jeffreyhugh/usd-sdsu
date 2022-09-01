@@ -128,7 +128,7 @@ export default function Page({ city }: { city: string }) {
               <input
                 type="text"
                 className="input input-bordered"
-                placeholder="Tag"
+                placeholder="Tag (optional)"
                 onChange={(e) => setTag(correctTag(e.target.value))}
                 value={tag}
               />
