@@ -14,6 +14,14 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
+  if (process.env.NEXT_PUBLIC_IS_DISABLED) {
+    res.status(503).json({
+      data: [] as View_Totals[],
+      error: "Temporarily Disabled",
+    });
+    return;
+  }
+
   switch (req.method) {
     case "GET":
       await handleGet(req, res);
@@ -70,7 +78,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse<Data>) {
 
   const { error } = await supabase.from<Row_Presses>("usdsdsu_presses").insert(
     {
-      side: side === 'usd' ? 'usd' : 'sdsu',
+      side: side === "usd" ? "usd" : "sdsu",
       tag: correctTag(tag.trim()),
     },
     {

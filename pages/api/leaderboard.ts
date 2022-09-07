@@ -13,6 +13,14 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
+  if (process.env.NEXT_PUBLIC_IS_DISABLED) {
+    res.status(503).json({
+      data: [] as View_Leaderboard[],
+      error: "Temporarily Disabled",
+    });
+    return;
+  }
+
   switch (req.method) {
     case "GET":
       await handleGet(req, res);
@@ -38,7 +46,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse<Data>) {
   if (error) {
     console.error(error);
     res.status(500).json({
-      data: data || [] as View_Leaderboard[],
+      data: data || ([] as View_Leaderboard[]),
       error: "Internal server error",
     });
     return;

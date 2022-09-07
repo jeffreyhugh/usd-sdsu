@@ -63,7 +63,15 @@ export default function Page({ city }: { city: string }) {
   }
 
   if (!data || !leaderboard) {
-    return null;
+    return (
+      <div data-theme="main">
+        <main className="w-full">
+          <div className="hero min-h-screen bg-neutral">
+            <h1 className="text-xl text-error-content">Loading...</h1>
+          </div>
+        </main>
+      </div>
+    );
   }
 
   return (
@@ -95,8 +103,15 @@ export default function Page({ city }: { city: string }) {
           <div className="hero-overlay bg-opacity-80" />
           <div className="hero-content flex-col">
             <Link href="/">
-              <a className="text-4xl md:text-6xl font-bold">usd-sdsu.com</a>
+              <a className="text-4xl font-bold md:text-6xl">
+                usd-sdsu.com
+              </a>
             </Link>
+            {process.env.NEXT_PUBLIC_IS_DISABLED === "TRUE" ? (
+              <h1 className="text-4xl font-bold text-red-500 md:text-6xl">
+                Temporarily Disabled
+              </h1>
+            ) : null}
             <div className="input-group shadow-xl">
               <button
                 className={[
@@ -104,6 +119,7 @@ export default function Page({ city }: { city: string }) {
                   "bg-usd-secondary hover:bg-usd-primary",
                   "text-usd-primary hover:text-usd-secondary",
                 ].join(" ")}
+                disabled={process.env.NEXT_PUBLIC_IS_DISABLED === "TRUE"}
                 onClick={(e) => {
                   e.screenX && e.screenY
                     ? buttonClick("usd", tag, mutate)
@@ -118,6 +134,7 @@ export default function Page({ city }: { city: string }) {
                   "bg-sdsu-secondary hover:bg-sdsu-primary",
                   "text-sdsu-primary hover:text-sdsu-secondary",
                 ].join(" ")}
+                disabled={process.env.NEXT_PUBLIC_IS_DISABLED === "TRUE"}
                 onClick={(e) => {
                   e.screenX && e.screenY
                     ? buttonClick("sdsu", tag, mutate)
