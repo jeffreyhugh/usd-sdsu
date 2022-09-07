@@ -10,9 +10,12 @@ import { ScopedMutator } from "swr/dist/types";
 import correctTag from "../lib/correctTag";
 import { Row_Presses, View_Leaderboard, View_Totals } from "../lib/db";
 import { GetServerSidePropsContext } from "next";
+import Link from "next/link";
 
 declare global {
-  interface Window { umami: (tag: any) => void; }
+  interface Window {
+    umami: (tag: any) => void;
+  }
 }
 
 export default function Page({ city }: { city: string }) {
@@ -91,6 +94,9 @@ export default function Page({ city }: { city: string }) {
         >
           <div className="hero-overlay bg-opacity-80" />
           <div className="hero-content flex-col">
+            <Link href="/">
+              <a className="text-4xl md:text-6xl font-bold">usd-sdsu.com</a>
+            </Link>
             <div className="input-group shadow-xl">
               <button
                 className={[
