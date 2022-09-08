@@ -68,7 +68,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse<Data>) {
 
   const { ts, clicks }: { ts: string; clicks: Row_Presses[] } = req.body;
 
-  if (!ts || Math.abs(DateTime.fromISO(ts).diffNow().as("seconds")) > 2) {
+  if (!ts || Math.abs(DateTime.fromISO(ts).diffNow().as("seconds")) > 10) {
     res.status(400).json({
       data: [] as View_Totals[],
       error: "Bad request",
