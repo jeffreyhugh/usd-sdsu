@@ -2,7 +2,7 @@ import { DateTime } from "luxon";
 import useSWR, { useSWRConfig } from "swr";
 import CountUp from "react-countup";
 
-import { useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 import Head from "next/head";
 import Script from "next/script";
@@ -11,6 +11,8 @@ import correctTag from "../lib/correctTag";
 import { Row_Presses, View_Leaderboard, View_Totals } from "../lib/db";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
+
+const MAX_CLICKS_PER_SUBMIT = 8;
 
 declare global {
   interface Window {
@@ -22,6 +24,8 @@ export default function Page({ city }: { city: string }) {
   const side = city && city.toLowerCase() === "vermillion" ? "usd" : "sdsu";
 
   const [tag, setTag] = useState("");
+  const [clicks, setClicks] = useState<Row_Presses[]>([]);
+  const [waitUntil, setWaitUntil] = useState(DateTime.now().toJSDate());
 
   const { mutate } = useSWRConfig();
 
@@ -103,9 +107,7 @@ export default function Page({ city }: { city: string }) {
           <div className="hero-overlay bg-opacity-80" />
           <div className="hero-content flex-col">
             <Link href="/">
-              <a className="text-4xl font-bold md:text-6xl">
-                usd-sdsu.com
-              </a>
+              <a className="text-4xl font-bold md:text-6xl">usd-sdsu.com</a>
             </Link>
             {process.env.NEXT_PUBLIC_IS_DISABLED === "TRUE" ? (
               <h1 className="text-4xl font-bold text-red-500 md:text-6xl">
@@ -122,7 +124,15 @@ export default function Page({ city }: { city: string }) {
                 disabled={process.env.NEXT_PUBLIC_IS_DISABLED === "TRUE"}
                 onClick={(e) => {
                   e.screenX && e.screenY
-                    ? buttonClick("usd", tag, mutate)
+                    ? onButtonPress(
+                        "usd",
+                        tag,
+                        waitUntil,
+                        setWaitUntil,
+                        clicks,
+                        setClicks,
+                        mutate
+                      )
                     : null;
                 }}
               >
@@ -137,7 +147,15 @@ export default function Page({ city }: { city: string }) {
                 disabled={process.env.NEXT_PUBLIC_IS_DISABLED === "TRUE"}
                 onClick={(e) => {
                   e.screenX && e.screenY
-                    ? buttonClick("sdsu", tag, mutate)
+                    ? onButtonPress(
+                        "sdsu",
+                        tag,
+                        waitUntil,
+                        setWaitUntil,
+                        clicks,
+                        setClicks,
+                        mutate
+                      )
                     : null;
                 }}
               >
@@ -163,11 +181,43 @@ export default function Page({ city }: { city: string }) {
   );
 }
 
-const buttonClick = async (
-  side: "usd" | "sdsu",
+const onButtonPress = async (
+  side: string,
   tag: string,
+  waitUntil: Date,
+  setWaitUntil: Dispatch<SetStateAction<Date>>,
+  clicks: Row_Presses[],
+  setClicks: Dispatch<SetStateAction<Row_Presses[]>>,
   mutate: ScopedMutator<any>
 ) => {
+  setClicks((c) =>
+    [
+      {
+        side,
+        tag,
+      } as Row_Presses,
+      ...c,
+    ].slice(0, MAX_CLICKS_PER_SUBMIT)
+  );
+
+  if (DateTime.fromJSDate(waitUntil).diffNow().as("millisecond") < 0) {
+    setWaitUntil(DateTime.now().plus({ hours: 1 }).toJSDate());
+
+    await submitClicks(clicks, mutate);
+    setClicks([]);
+    
+    setWaitUntil(DateTime.now().plus({ seconds: 1 }).toJSDate());
+  }
+};
+
+const submitClicks = async (
+  clicks: Row_Presses[],
+  mutate: ScopedMutator<any>
+) => {
+  if (clicks.length === 0) {
+    return;
+  }
+
   await fetch("/api/button", {
     method: "POST",
     headers: {
@@ -175,16 +225,24 @@ const buttonClick = async (
     },
     body: JSON.stringify({
       ts: DateTime.now().toISO(),
-      side: side,
-      tag: tag,
+      clicks: clicks,
     }),
   });
   mutate("/api/button");
-  if (tag) mutate("/api/leaderboard");
-  if (window.umami) {
-    window.umami(
-      `click-${side}${tag !== "" ? `-${correctTag(tag.trim())}` : ""}`
-    );
+  for (let i = 0; i < clicks.length; i++) {
+    if (clicks[i].tag) {
+      mutate("/api/leaderboard");
+      break;
+    }
+  }
+  for (let i = 0; i < clicks.length; i++) {
+    const tag = clicks[i].tag;
+    const side = clicks[i].side;
+    if (window.umami) {
+      window.umami(
+        `click-${side}${tag && tag !== "" ? `-${correctTag(tag.trim())}` : ""}`
+      );
+    }
   }
 };
 
@@ -237,7 +295,7 @@ const Stats = ({
             <CountUp
               duration={2}
               preserveValue={true}
-              end={data.filter((r) => r.side === "sdsu")[0]?.count || 0}
+              end={sdsuTotal}
               useEasing={true}
             />
           </div>

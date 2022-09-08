@@ -66,9 +66,9 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse<Data>) {
     process.env.NEXT_PRIVATE_SUPABASE_SERVICE_ROLE || ""
   );
 
-  const { ts, side, tag } = req.body;
+  const { ts, clicks }: { ts: string; clicks: Row_Presses[] } = req.body;
 
-  if (!ts || Math.abs(DateTime.fromISO(ts).diffNow().as("seconds")) > 10) {
+  if (!ts || Math.abs(DateTime.fromISO(ts).diffNow().as("seconds")) > 2) {
     res.status(400).json({
       data: [] as View_Totals[],
       error: "Bad request",
@@ -76,15 +76,9 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse<Data>) {
     return;
   }
 
-  const { error } = await supabase.from<Row_Presses>("usdsdsu_presses").insert(
-    {
-      side: side === "usd" ? "usd" : "sdsu",
-      tag: correctTag(tag.trim()),
-    },
-    {
-      returning: "minimal",
-    }
-  );
+  const { error } = await supabase
+    .from<Row_Presses>("usdsdsu_presses")
+    .insert(clicks);
 
   if (error) {
     console.error(error);
