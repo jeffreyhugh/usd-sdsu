@@ -1,8 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { DateTime } from "luxon";
 import { View_Leaderboard } from "../../lib/db";
+import { IS_DISABLED } from "../../lib/disabled";
 
 type Data = {
   data: View_Leaderboard[];
@@ -13,7 +13,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
-  if (process.env.NEXT_PUBLIC_IS_DISABLED) {
+  if (process.env.NEXT_PUBLIC_IS_DISABLED === 'TRUE') {
     res.status(503).json({
       data: [] as View_Leaderboard[],
       error: "Temporarily Disabled",

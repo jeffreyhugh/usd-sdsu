@@ -16,6 +16,7 @@
     "luxon": "^3.0.1",
     "next": "12.2.5",
     "react": "18.2.0",
+    "react-countdown": "^2.3.2",
     "react-countup": "^6.3.0",
     "react-dom": "18.2.0",
     "swr": "^1.3.0",

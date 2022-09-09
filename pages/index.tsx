@@ -11,6 +11,9 @@ import correctTag from "../lib/correctTag";
 import { Row_Presses, View_Leaderboard, View_Totals } from "../lib/db";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
+import { EndTime } from "../lib/time";
+import { IS_DISABLED } from "../lib/disabled";
+import Countdown from "react-countdown";
 
 const MAX_CLICKS_PER_SUBMIT = 8;
 
@@ -114,6 +117,27 @@ export default function Page({ city }: { city: string }) {
                 Temporarily Disabled
               </h1>
             ) : null}
+            <Countdown
+              date={EndTime}
+              renderer={({ days, hours, minutes, seconds, completed }) => (
+                <div className="text-2xl font-bold md:text-4xl">
+                  {!completed
+                    ? "ending in "
+                    : "come back soon to see the timeline"}
+                  {days ? `${days}d ` : null}
+                  {hours || days
+                    ? `${hours.toString().padStart(2, "0")}h `
+                    : null}
+                  {minutes || hours || days
+                    ? `${minutes.toString().padStart(2, "0")}m `
+                    : null}
+                  {seconds || minutes || hours || days
+                    ? `${seconds.toString().padStart(2, "0")}s `
+                    : null}
+                </div>
+              )}
+            />
+
             <div className="input-group shadow-xl">
               <button
                 className={[
@@ -121,7 +145,7 @@ export default function Page({ city }: { city: string }) {
                   "bg-usd-secondary hover:bg-usd-primary",
                   "text-usd-primary hover:text-usd-secondary",
                 ].join(" ")}
-                disabled={process.env.NEXT_PUBLIC_IS_DISABLED === "TRUE"}
+                disabled={IS_DISABLED}
                 onClick={(e) => {
                   e.screenX && e.screenY
                     ? onButtonPress(
@@ -144,7 +168,7 @@ export default function Page({ city }: { city: string }) {
                   "bg-sdsu-secondary hover:bg-sdsu-primary",
                   "text-sdsu-primary hover:text-sdsu-secondary",
                 ].join(" ")}
-                disabled={process.env.NEXT_PUBLIC_IS_DISABLED === "TRUE"}
+                disabled={IS_DISABLED}
                 onClick={(e) => {
                   e.screenX && e.screenY
                     ? onButtonPress(
@@ -205,7 +229,7 @@ const onButtonPress = async (
 
     await submitClicks(clicks, mutate);
     setClicks([]);
-    
+
     setWaitUntil(DateTime.now().plus({ seconds: 1 }).toJSDate());
   }
 };

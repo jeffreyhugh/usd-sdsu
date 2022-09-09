@@ -4,6 +4,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { DateTime } from "luxon";
 import { Row_Presses, View_Totals } from "../../lib/db";
 import correctTag from "../../lib/correctTag";
+import { IS_DISABLED } from "../../lib/disabled";
 
 type Data = {
   data: View_Totals[];
@@ -14,7 +15,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
-  if (process.env.NEXT_PUBLIC_IS_DISABLED) {
+  if (process.env.NEXT_PUBLIC_IS_DISABLED === 'TRUE') {
     res.status(503).json({
       data: [] as View_Totals[],
       error: "Temporarily Disabled",
@@ -76,9 +77,14 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse<Data>) {
     return;
   }
 
-  const { error } = await supabase
-    .from<Row_Presses>("usdsdsu_presses")
-    .insert(clicks);
+  const { error } = await supabase.from<Row_Presses>("usdsdsu_presses").insert(
+    clicks.map((c) => {
+      return {
+        ...c,
+        tag: c.tag ? correctTag(c.tag) : undefined,
+      };
+    })
+  );
 
   if (error) {
     console.error(error);
