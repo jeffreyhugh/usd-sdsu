@@ -9,7 +9,6 @@ import {
   Legend,
   Line,
 } from "recharts";
-import { hour1, hour12, hour24, hour48, hour72 } from "../lib/data";
 import nFormatter from "../lib/numberFormat";
 
 const CustomizedDot = (props: any) => null;
