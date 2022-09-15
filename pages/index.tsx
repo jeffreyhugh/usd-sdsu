@@ -1,85 +1,13 @@
-import { DateTime } from "luxon";
-import useSWR, { useSWRConfig } from "swr";
-import CountUp from "react-countup";
-
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
-
-import Head from "next/head";
-import Script from "next/script";
-import { ScopedMutator } from "swr/dist/types";
-import correctTag from "../lib/correctTag";
-import { Row_Presses, View_Leaderboard, View_Totals } from "../lib/db";
 import { GetServerSidePropsContext } from "next";
+import Head from "next/head";
 import Link from "next/link";
-import { EndTime } from "../lib/time";
-import { IS_DISABLED } from "../lib/disabled";
-import Countdown from "react-countdown";
-
-const MAX_CLICKS_PER_SUBMIT = 8;
-
-declare global {
-  interface Window {
-    umami: (tag: any) => void;
-  }
-}
+import Script from "next/script";
+import CountUp from "react-countup";
+import LineGraph from "../components/graphs";
+import { hour1, hour12, hour24, hour48 } from "../lib/data";
 
 export default function Page({ city }: { city: string }) {
   const side = city && city.toLowerCase() === "vermillion" ? "usd" : "sdsu";
-
-  const [tag, setTag] = useState("");
-  const [clicks, setClicks] = useState<Row_Presses[]>([]);
-  const [waitUntil, setWaitUntil] = useState(DateTime.now().toJSDate());
-
-  const { mutate } = useSWRConfig();
-
-  const { data, error } = useSWR(
-    "/api/button",
-    async () => {
-      const res = await fetch("/api/button");
-      return await res.json();
-    },
-    {
-      refreshInterval: 5000,
-    }
-  );
-
-  const { data: leaderboard, error: leaderboardError } = useSWR(
-    "/api/leaderboard",
-    async () => {
-      const res = await fetch("/api/leaderboard");
-      return await res.json();
-    },
-    {
-      refreshInterval: 5000,
-    }
-  );
-
-  if (error || leaderboardError) {
-    console.error(error, leaderboardError);
-    return (
-      <div data-theme="main">
-        <main className="w-full">
-          <div className="hero min-h-screen bg-neutral">
-            <h1 className="text-xl text-error-content">
-              Something went wrong, please check the console
-            </h1>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  if (!data || !leaderboard) {
-    return (
-      <div data-theme="main">
-        <main className="w-full">
-          <div className="hero min-h-screen bg-neutral">
-            <h1 className="text-xl text-error-content">Loading...</h1>
-          </div>
-        </main>
-      </div>
-    );
-  }
 
   return (
     <div data-theme="main">
@@ -97,7 +25,90 @@ export default function Page({ city }: { city: string }) {
         src="https://umami.queue.bot/umami.js"
       />
       <main className="relative w-full">
-        <Stats data={data.data} leaderboard={leaderboard.data} />
+        <div className="absolute mt-6 flex w-full justify-center">
+          <div className="stats shadow-xl">
+            <div className="stat bg-usd-secondary">
+              <div className="stat-title text-usd-primary">USD</div>
+              <div className="stat-value text-center text-usd-primary">
+                <CountUp
+                  duration={2}
+                  preserveValue={true}
+                  end={396368}
+                  useEasing={true}
+                />
+              </div>
+              <div className="stat-desc flex flex-col text-usd-primary opacity-100">
+                <span className="font-bold">
+                  😎{" "}
+                  <CountUp
+                    duration={2}
+                    preserveValue={true}
+                    end={34152}
+                    useEasing={true}
+                  />
+                </span>
+                <span className="font-bold">
+                  🧸{" "}
+                  <CountUp
+                    duration={2}
+                    preserveValue={true}
+                    end={17043}
+                    useEasing={true}
+                  />
+                </span>
+                <span className="font-bold">
+                  🟪‍🍌{" "}
+                  <CountUp
+                    duration={2}
+                    preserveValue={true}
+                    end={6520}
+                    useEasing={true}
+                  />
+                </span>
+              </div>
+            </div>
+            <div className="stat bg-sdsu-secondary">
+              <div className="stat-title text-sdsu-primary">USD</div>
+              <div className="stat-value text-center text-sdsu-primary">
+                <CountUp
+                  duration={2}
+                  preserveValue={true}
+                  end={163680}
+                  useEasing={true}
+                />
+              </div>
+              <div className="stat-desc flex flex-col text-usd-primary opacity-100">
+                <span className="font-bold">
+                  👌{" "}
+                  <CountUp
+                    duration={2}
+                    preserveValue={true}
+                    end={105031}
+                    useEasing={true}
+                  />
+                </span>
+                <span className="font-bold">
+                  🎾{" "}
+                  <CountUp
+                    duration={2}
+                    preserveValue={true}
+                    end={2568}
+                    useEasing={true}
+                  />
+                </span>
+                <span className="font-bold">
+                  🥸{" "}
+                  <CountUp
+                    duration={2}
+                    preserveValue={true}
+                    end={2156}
+                    useEasing={true}
+                  />
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
         <div
           className="hero min-h-screen"
           style={{
@@ -108,95 +119,103 @@ export default function Page({ city }: { city: string }) {
           }}
         >
           <div className="hero-overlay bg-opacity-80" />
-          <div className="hero-content flex-col">
+          <div className="hero-content w-full flex-col">
             <Link href="/">
               <a className="text-4xl font-bold md:text-6xl">usd-sdsu.com</a>
             </Link>
-            {process.env.NEXT_PUBLIC_IS_DISABLED === "TRUE" ? (
-              <h1 className="text-4xl font-bold text-red-500 md:text-6xl">
-                Temporarily Disabled
-              </h1>
-            ) : null}
-            <Countdown
-              date={EndTime}
-              renderer={({ days, hours, minutes, seconds, completed }) => (
-                <div className="text-2xl font-bold md:text-4xl">
-                  {!completed
-                    ? "ending in "
-                    : "come back soon to see the timeline"}
-                  {days ? `${days}d ` : null}
-                  {hours || days
-                    ? `${hours.toString().padStart(2, "0")}h `
-                    : null}
-                  {minutes || hours || days
-                    ? `${minutes.toString().padStart(2, "0")}m `
-                    : null}
-                  {seconds || minutes || hours || days
-                    ? `${seconds.toString().padStart(2, "0")}s `
-                    : null}
-                </div>
-              )}
-            />
-
-            <div className="input-group shadow-xl">
-              <button
-                className={[
-                  "btn w-1/2 border-none font-bold",
-                  "bg-usd-secondary hover:bg-usd-primary",
-                  "text-usd-primary hover:text-usd-secondary",
-                ].join(" ")}
-                disabled={IS_DISABLED}
-                onClick={(e) => {
-                  e.screenX && e.screenY
-                    ? onButtonPress(
-                        "usd",
-                        tag,
-                        waitUntil,
-                        setWaitUntil,
-                        clicks,
-                        setClicks,
-                        mutate
-                      )
-                    : null;
-                }}
-              >
-                USD
-              </button>
-              <button
-                className={[
-                  "btn w-1/2 border-none font-bold",
-                  "bg-sdsu-secondary hover:bg-sdsu-primary",
-                  "text-sdsu-primary hover:text-sdsu-secondary",
-                ].join(" ")}
-                disabled={IS_DISABLED}
-                onClick={(e) => {
-                  e.screenX && e.screenY
-                    ? onButtonPress(
-                        "sdsu",
-                        tag,
-                        waitUntil,
-                        setWaitUntil,
-                        clicks,
-                        setClicks,
-                        mutate
-                      )
-                    : null;
-                }}
-              >
-                SDSU
-              </button>
+            <div className="block md:hidden">
+              <div className="mt-4 text-2xl">
+                Thanks for participating! The final scores are above.
+              </div>
+              <div className="mt-2 text-2xl">
+                You can download the full database and see some graphs by
+                visiting the website on your computer.
+              </div>
             </div>
-            <div
-              className="tooltip tooltip-bottom"
-              data-tip="Optional tag for leaderboards. Use emoji and spaces only."
-            >
-              <input
-                type="text"
-                className="input input-bordered"
-                placeholder="Tag (optional)"
-                onChange={(e) => setTag(correctTag(e.target.value))}
-                value={tag}
-              />
+            <div className="carousel hidden w-full md:flex">
+              <div
+                id="hour1"
+                className="carousel-item relative h-96 w-full flex-col items-center"
+              >
+                <h1 className="mb-6 flex justify-center text-2xl font-bold md:text-4xl">
+                  Hour 1
+                </h1>
+                <div className="flex h-full w-5/6">
+                  <LineGraph data={hour1} />
+                </div>
+                <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
+                  <a href="#hour48" className="btn btn-circle">
+                    ❮
+                  </a>
+                  <a href="#hour12" className="btn btn-circle">
+                    ❯
+                  </a>
+                </div>
+              </div>
+              <div
+                id="hour12"
+                className="carousel-item relative h-96 w-full flex-col items-center"
+              >
+                <h1 className="mb-6 flex justify-center text-2xl font-bold md:text-4xl">
+                  Hour 12
+                </h1>
+                <div className="flex h-full w-5/6">
+                  <LineGraph data={hour12} />
+                </div>
+                <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
+                  <a href="#hour1" className="btn btn-circle">
+                    ❮
+                  </a>
+                  <a href="#hour24" className="btn btn-circle">
+                    ❯
+                  </a>
+                </div>
+              </div>
+              <div
+                id="hour24"
+                className="carousel-item relative h-96 w-full flex-col items-center"
+              >
+                <h1 className="mb-6 flex justify-center text-2xl font-bold md:text-4xl">
+                  Hour 24
+                </h1>
+                <div className="flex h-full w-5/6">
+                  <LineGraph data={hour24} />
+                </div>
+                <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
+                  <a href="#hour12" className="btn btn-circle">
+                    ❮
+                  </a>
+                  <a href="#hour48" className="btn btn-circle">
+                    ❯
+                  </a>
+                </div>
+              </div>
+              <div
+                id="hour48"
+                className="carousel-item relative h-96 w-full flex-col items-center"
+              >
+                <h1 className="mb-6 flex justify-center text-2xl font-bold md:text-4xl">
+                  Hour 48
+                </h1>
+                <div className="flex h-full w-5/6">
+                  <LineGraph data={hour48} />
+                </div>
+                <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
+                  <a href="#hour24" className="btn btn-circle">
+                    ❮
+                  </a>
+                  <a href="#hour1" className="btn btn-circle">
+                    ❯
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div>
+              <a
+                href="https://storage.queue.bot/dl/f/usdsdsu_full.csv"
+              >
+                <div className="btn">Download the full database</div>
+              </a>
             </div>
           </div>
         </div>
@@ -204,149 +223,6 @@ export default function Page({ city }: { city: string }) {
     </div>
   );
 }
-
-const onButtonPress = async (
-  side: string,
-  tag: string,
-  waitUntil: Date,
-  setWaitUntil: Dispatch<SetStateAction<Date>>,
-  clicks: Row_Presses[],
-  setClicks: Dispatch<SetStateAction<Row_Presses[]>>,
-  mutate: ScopedMutator<any>
-) => {
-  setClicks((c) =>
-    [
-      {
-        side,
-        tag,
-      } as Row_Presses,
-      ...c,
-    ].slice(0, MAX_CLICKS_PER_SUBMIT)
-  );
-
-  if (DateTime.fromJSDate(waitUntil).diffNow().as("millisecond") < 0) {
-    setWaitUntil(DateTime.now().plus({ hours: 1 }).toJSDate());
-
-    await submitClicks(clicks, mutate);
-    setClicks([]);
-
-    setWaitUntil(DateTime.now().plus({ seconds: 1 }).toJSDate());
-  }
-};
-
-const submitClicks = async (
-  clicks: Row_Presses[],
-  mutate: ScopedMutator<any>
-) => {
-  if (clicks.length === 0) {
-    return;
-  }
-
-  await fetch("/api/button", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      ts: DateTime.now().toISO(),
-      clicks: clicks,
-    }),
-  });
-  mutate("/api/button");
-  for (let i = 0; i < clicks.length; i++) {
-    if (clicks[i].tag) {
-      mutate("/api/leaderboard");
-      break;
-    }
-  }
-  for (let i = 0; i < clicks.length; i++) {
-    const tag = clicks[i].tag;
-    const side = clicks[i].side;
-    if (window.umami) {
-      window.umami(
-        `click-${side}${tag && tag !== "" ? `-${correctTag(tag.trim())}` : ""}`
-      );
-    }
-  }
-};
-
-const Stats = ({
-  data,
-  leaderboard,
-}: {
-  data: View_Totals[];
-  leaderboard: View_Leaderboard[];
-}) => {
-  const usdTotal = data.filter((r) => r.side === "usd")[0]?.count || 0;
-  const sdsuTotal = data.filter((r) => r.side === "sdsu")[0]?.count || 0;
-
-  return (
-    <div className="absolute mt-6 flex w-full justify-center">
-      <div className="stats shadow-xl">
-        <div className="stat bg-usd-secondary">
-          <div className="stat-title text-usd-primary">USD</div>
-          <div className="stat-value text-center text-usd-primary">
-            <CountUp
-              duration={2}
-              preserveValue={true}
-              end={usdTotal}
-              useEasing={true}
-            />
-          </div>
-          <div className="stat-desc flex flex-col text-usd-primary opacity-100">
-            {leaderboard
-              .filter((r) => r.side === "usd")
-              .filter((r) => r.tag !== "")
-              .sort((a, b) => b.count - a.count)
-              .map((r, i) =>
-                i < 3 ? (
-                  <span key={r.tag} className="font-bold">
-                    {r.tag}{" "}
-                    <CountUp
-                      duration={2}
-                      preserveValue={true}
-                      end={r.count || 0}
-                      useEasing={true}
-                    />
-                  </span>
-                ) : null
-              )}
-          </div>
-        </div>
-        <div className="stat bg-sdsu-secondary">
-          <div className="stat-title text-sdsu-primary">SDSU</div>
-          <div className="stat-value text-center text-sdsu-primary">
-            <CountUp
-              duration={2}
-              preserveValue={true}
-              end={sdsuTotal}
-              useEasing={true}
-            />
-          </div>
-          <div className="stat-desc flex flex-col text-sdsu-primary opacity-100">
-            {leaderboard
-              .filter((r) => r.side === "sdsu")
-              .filter((r) => r.tag !== "")
-              .sort((a, b) => b.count - a.count)
-              .map((r, i) =>
-                i < 3 ? (
-                  <span key={r.tag} className="font-bold">
-                    {r.tag}{" "}
-                    <CountUp
-                      duration={2}
-                      preserveValue={true}
-                      end={r.count || 0}
-                      useEasing={true}
-                    />
-                  </span>
-                ) : null
-              )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const { "x-vercel-ip-city": city } = ctx.req.headers;
