@@ -210,7 +210,7 @@ export default function Page({ city }: { city: string }) {
                 </div>
               </div>
             </div>
-            <div>
+            <div className="hidden md:block">
               <a
                 href="https://storage.queue.bot/dl/f/usdsdsu_full.csv"
               >
