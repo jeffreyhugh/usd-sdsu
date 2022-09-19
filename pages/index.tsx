@@ -68,7 +68,7 @@ export default function Page({ city }: { city: string }) {
               </div>
             </div>
             <div className="stat bg-sdsu-secondary">
-              <div className="stat-title text-sdsu-primary">USD</div>
+              <div className="stat-title text-sdsu-primary">SDSU</div>
               <div className="stat-value text-center text-sdsu-primary">
                 <CountUp
                   duration={2}
